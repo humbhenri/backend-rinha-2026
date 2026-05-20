@@ -72,6 +72,11 @@ func readyHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 func main() {
+	err, references := ReadReferences()
+	if err != nil {
+		panic(err)
+	}
+	fmt.Println("References file read: %d vectors", len(references))
 	http.HandleFunc("/ready", readyHandler)
 	http.HandleFunc("/fraude-score", fraudScoreHandler)
 	fmt.Println("App running on port 6969")

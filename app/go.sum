@@ -1,2 +1,6 @@
+github.com/Bithack/go-hnsw v0.0.0-20170629124716-52a932462077 h1:k340PTKN1JUBEdS18AsKXjUyG/yo1//+rGmW5mZkYUA=
+github.com/Bithack/go-hnsw v0.0.0-20170629124716-52a932462077/go.mod h1:ZsMyTqrshmipaTT/huJeJoWcaUPA6JAQH85zmzAKIKc=
 github.com/sunhailin-Leo/hnswlib-to-go v1.1.0 h1:db602dYHAKeH3C7bBWyHgpP/sB1DKEbnwlIZmKLfbgI=
 github.com/sunhailin-Leo/hnswlib-to-go v1.1.0/go.mod h1:1GYMrabl7sDcwTPwhZkH6n1NOLmfMurMEGPm9Et9fkE=
+github.com/willf/bitset v1.1.11 h1:N7Z7E9UvjW+sGsEl7k/SJrvY2reP1A07MrGuCjIOjRE=
+github.com/willf/bitset v1.1.11/go.mod h1:83CECat5yLh5zVOf4P1ErAgKA5UDvKtgyUABdr3+MjI=
