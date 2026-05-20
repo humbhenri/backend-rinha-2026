@@ -1,7 +1,8 @@
 FROM golang:1.26.3
 
 COPY go.mod ./
-#RUN go mod download
+COPY go.sum ./
+RUN go mod download
 
 COPY *.go ./
 
