@@ -2,8 +2,9 @@ package main
 
 import (
 	"fmt"
-	"time"
+	"github.com/coder/hnsw"
 	"math"
+	"time"
 )
 
 var normalization = map[string]float32{
@@ -28,6 +29,14 @@ var mccRisk = map[string]float32{
 	"5311": 0.25,
 	"5999": 0.50,
 }
+
+const (
+	M              = 32
+	efConstruction = 400
+	efSearch       = 100
+	K              = 5
+	dims           = 14
+)
 
 // clamp keeps value between 0 and 1
 func clamp(x float32) float32 {
@@ -102,7 +111,31 @@ func Transform(p Payload) []float32 {
 	}
 	var ratio float32 = 10000
 	for i, x := range result {
-		result[i] = float32(math.Round(float64(x * ratio))) / ratio
+		result[i] = float32(math.Round(float64(x*ratio))) / ratio
 	}
 	return result
+}
+
+// AddReferences add vectors to the graph struct for hierarchical search
+func AddReferences(references []Reference) *hnsw.Graph[int] {
+	// var zero hnsw.Point = make([]float32, dims)
+	// h := hnsw.New(M, efConstruction, zero)
+	// h.Grow(len(references))
+	// for i, ref := range references {
+	// 	log.Printf("Add vector %v with index %d\n", ref.Vector, uint32(i+1))
+	// 	h.Add(ref.Vector, uint32(i+1)) // ID must start from 1
+	// }
+	// return
+	g := hnsw.NewGraph[int]()
+	for i, ref := range references {
+		g.Add(hnsw.MakeNode(i+1, ref.Vector))
+	}
+	return g
+}
+
+// SearchVector search a vector in the graph struct
+func SearchVector(vector []float32, g *hnsw.Graph[int]) {
+	if found := g.Search(vector, K); found != nil {
+		fmt.Println("Found")
+	}
 }

@@ -2,7 +2,7 @@ package main
 
 import (
 	"encoding/json"
-	"fmt"
+	"log"
 	"net/http"
 	"time"
 )
@@ -72,13 +72,16 @@ func readyHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 func main() {
+	log.Println("Reading references file")
 	err, references := ReadReferences()
 	if err != nil {
 		panic(err)
 	}
-	fmt.Println("References file read: %d vectors", len(references))
+	log.Printf("References file read: %d vectors\n", len(references))
+	g := AddReferences(references)
+	log.Printf("References added to the graph struct %v\n", g)
 	http.HandleFunc("/ready", readyHandler)
 	http.HandleFunc("/fraude-score", fraudScoreHandler)
-	fmt.Println("App running on port 6969")
+	log.Println("App running on port 6969")
 	http.ListenAndServe(":6969", nil)
 }
