@@ -19,7 +19,6 @@ func TestTransform(t *testing.T) {
 	err := json.Unmarshal([]byte(example), &p)
 	if err != nil {
 		t.Error(err)
-		return
 	}
 	result := Transform(p)
 	if !reflect.DeepEqual(result, []float32{0.9506, 0.8333, 1.0, 0.2174, 0.8333, -1, -1, 0.9523, 1.0, 0, 1, 1, 0.75, 0.0055}) {

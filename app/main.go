@@ -2,6 +2,7 @@ package main
 
 import (
 	"encoding/json"
+	"github.com/coder/hnsw"
 	"log"
 	"net/http"
 	"time"
@@ -50,7 +51,20 @@ type Response struct {
 	FraudScore float32 `json:"fraud_score"`
 }
 
-func fraudScoreHandler(w http.ResponseWriter, r *http.Request) {
+func calcFraudScore(neighbors []hnsw.Node[int], references []Reference) float32 {
+	frauds := 0
+	for _, neighbor := range neighbors {
+		index := neighbor.Key
+		reference := references[index-1]
+		log.Printf("reference index %d, label %v\n", index, reference.Label)
+		if reference.Label == "fraud" {
+			frauds++
+		}
+	}
+	return float32(frauds) / 5.0
+}
+
+func FraudScoreHandler(w http.ResponseWriter, r *http.Request, graph *hnsw.Graph[int], references []Reference) {
 	if r.Method != http.MethodPost {
 		http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
 		return
@@ -61,9 +75,15 @@ func fraudScoreHandler(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
 	}
+	vector := Transform(p)
+	log.Printf("Payload transformed into vector %v\n", vector)
+	neighbors := graph.Search(vector, 5)
+	fraudScore := calcFraudScore(neighbors, references)
+	approved := fraudScore < 0.6
+	log.Printf("Transaction approved: %v. Fraud score: %v", approved, fraudScore)
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusOK)
-	response := Response{}
+	response := Response{Approved: approved, FraudScore: fraudScore}
 	json.NewEncoder(w).Encode(response)
 }
 
@@ -73,15 +93,17 @@ func readyHandler(w http.ResponseWriter, r *http.Request) {
 
 func main() {
 	log.Println("Reading references file")
-	err, references := ReadReferences()
+	err, references := ReadReferences("dataset/references.json.gz")
 	if err != nil {
 		panic(err)
 	}
 	log.Printf("References file read: %d vectors\n", len(references))
-	g := AddReferences(references)
-	log.Printf("References added to the graph struct %v\n", g)
+	graph := AddReferences(references)
+	log.Printf("References added to the graph struct %v\n", graph)
 	http.HandleFunc("/ready", readyHandler)
-	http.HandleFunc("/fraude-score", fraudScoreHandler)
+	http.HandleFunc("/fraud-score", func(w http.ResponseWriter, r *http.Request) {
+		FraudScoreHandler(w, r, graph, references)
+	})
 	log.Println("App running on port 6969")
 	http.ListenAndServe(":6969", nil)
 }

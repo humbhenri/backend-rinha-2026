@@ -2,7 +2,7 @@ package main
 
 import (
 	"fmt"
-	"github.com/coder/hnsw"
+ 	"github.com/coder/hnsw"
 	"math"
 	"time"
 )
@@ -118,14 +118,6 @@ func Transform(p Payload) []float32 {
 
 // AddReferences add vectors to the graph struct for hierarchical search
 func AddReferences(references []Reference) *hnsw.Graph[int] {
-	// var zero hnsw.Point = make([]float32, dims)
-	// h := hnsw.New(M, efConstruction, zero)
-	// h.Grow(len(references))
-	// for i, ref := range references {
-	// 	log.Printf("Add vector %v with index %d\n", ref.Vector, uint32(i+1))
-	// 	h.Add(ref.Vector, uint32(i+1)) // ID must start from 1
-	// }
-	// return
 	g := hnsw.NewGraph[int]()
 	for i, ref := range references {
 		g.Add(hnsw.MakeNode(i+1, ref.Vector))

@@ -12,8 +12,8 @@ type Reference struct {
 	Label  string    `json:"label"`
 }
 
-func ReadReferences() (error, []Reference) {
-	f, err := os.Open("dataset/references.json.gz")
+func ReadReferences(file string) (error, []Reference) {
+	f, err := os.Open(file)
 	if err != nil {
 		return err, nil
 	}
