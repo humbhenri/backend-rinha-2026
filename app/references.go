@@ -5,14 +5,13 @@ import (
 	"encoding/json"
 	"io"
 	"io/ioutil"
-	"log"
 	"net/http"
 	"os"
 )
 
 const (
-	referencesFilePath     = "dataset/references.json.gz"
-	referencesDownloadLink = "https://github.com/zanfranceschi/rinha-de-backend-2026/raw/refs/heads/main/resources/references.json.gz"
+	ReferencesFilePath     = "dataset/references.json.gz"
+	ReferencesDownloadLink = "https://github.com/zanfranceschi/rinha-de-backend-2026/raw/refs/heads/main/resources/references.json.gz"
 )
 
 type Reference struct {
@@ -46,18 +45,16 @@ func ReadReferences(file string) (error, []Reference) {
 
 // DownloadReferences downloads the references file
 func DownloadReferences() error {
-	f, err := os.Create(referencesFilePath)
+	f, err := os.Create(ReferencesFilePath)
 	if err != nil {
 		return err
 	}
 	defer f.Close()
-	log.Println("References file output created")
-	resp, err := http.Get(referencesDownloadLink)
+	resp, err := http.Get(ReferencesDownloadLink)
 	if err != nil {
 		return err
 	}
 	defer resp.Body.Close()
-	log.Println("References data downloaded")
 	_, err = io.Copy(f, resp.Body)
 	return err
 }

@@ -1,12 +1,12 @@
 package main
 
 import (
-	"fmt"
 	"github.com/coder/hnsw"
+	"os"
 )
 
 const (
-	K = 5
+	GraphPath = "dataset/hnsw.graph"
 )
 
 // AddReferences add vectors to the graph struct for hierarchical search
@@ -18,9 +18,13 @@ func AddReferences(references []Reference) *hnsw.Graph[int] {
 	return g
 }
 
-// SearchVector search a vector in the graph struct
-func SearchVector(vector []float32, g *hnsw.Graph[int]) {
-	if found := g.Search(vector, K); found != nil {
-		fmt.Println("Found")
+// SaveGraph saves the graph structure into file system to later retrieval
+func SaveGraph(g *hnsw.Graph[int]) error {
+	path := GraphPath
+	out, err := os.Create(path)
+	if err != nil {
+		return err
 	}
+	err = g.Export(out)
+	return err
 }

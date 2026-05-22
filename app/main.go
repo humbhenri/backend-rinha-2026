@@ -102,19 +102,34 @@ func main() {
 		if err != nil {
 			panic(err)
 		}
+		log.Println("References data downloaded")
+		err, references := ReadReferences(ReferencesFilePath)
+		if err != nil {
+			panic(err)
+		}
+		log.Println("References file read")
+		g := AddReferences(references)
+		log.Println("Graph struct done")
+		err = SaveGraph(g)
+		if err != nil {
+			panic(err)
+		}
+		log.Println("Graph struct saved to file system, setup completed")
 		return
 	}
 	log.Println("Reading references file")
-	err, references := ReadReferences("dataset/references.json.gz")
+	err, references := ReadReferences(ReferencesFilePath)
 	if err != nil {
 		panic(err)
 	}
-	log.Printf("References file read: %d vectors\n", len(references))
-	graph := AddReferences(references)
-	log.Printf("References added to the graph struct %v\n", graph)
+	savedGraph, err := hnsw.LoadSavedGraph[int](GraphPath)
+	if err != nil {
+	 	panic(err)
+	}
+	log.Println("References added to the graph struct")
 	http.HandleFunc("/ready", readyHandler)
 	http.HandleFunc("/fraud-score", func(w http.ResponseWriter, r *http.Request) {
-		FraudScoreHandler(w, r, graph, references)
+		FraudScoreHandler(w, r, savedGraph.Graph, references)
 	})
 	log.Println("App running on port 6969")
 	http.ListenAndServe(":6969", nil)
