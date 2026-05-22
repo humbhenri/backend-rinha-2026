@@ -6,7 +6,10 @@ import (
 	"log"
 	"net/http"
 	"time"
+	"flag"
 )
+
+var setupFlag = flag.Bool("s", false, "download and preprocess references file and exit")
 
 type Transaction struct {
 	Amount       float32   `json:"amount"`
@@ -92,6 +95,15 @@ func readyHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 func main() {
+	flag.Parse()
+	if *setupFlag {
+		log.Println("Executing setup")
+		err := DownloadReferences()
+		if err != nil {
+			panic(err)
+		}
+		return
+	}
 	log.Println("Reading references file")
 	err, references := ReadReferences("dataset/references.json.gz")
 	if err != nil {

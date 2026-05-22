@@ -2,7 +2,6 @@ package main
 
 import (
 	"fmt"
- 	"github.com/coder/hnsw"
 	"math"
 	"time"
 )
@@ -29,14 +28,6 @@ var mccRisk = map[string]float32{
 	"5311": 0.25,
 	"5999": 0.50,
 }
-
-const (
-	M              = 32
-	efConstruction = 400
-	efSearch       = 100
-	K              = 5
-	dims           = 14
-)
 
 // clamp keeps value between 0 and 1
 func clamp(x float32) float32 {
@@ -114,20 +105,4 @@ func Transform(p Payload) []float32 {
 		result[i] = float32(math.Round(float64(x*ratio))) / ratio
 	}
 	return result
-}
-
-// AddReferences add vectors to the graph struct for hierarchical search
-func AddReferences(references []Reference) *hnsw.Graph[int] {
-	g := hnsw.NewGraph[int]()
-	for i, ref := range references {
-		g.Add(hnsw.MakeNode(i+1, ref.Vector))
-	}
-	return g
-}
-
-// SearchVector search a vector in the graph struct
-func SearchVector(vector []float32, g *hnsw.Graph[int]) {
-	if found := g.Search(vector, K); found != nil {
-		fmt.Println("Found")
-	}
 }
