@@ -8,4 +8,10 @@ COPY *.go ./
 
 RUN CGO_ENABLED=0 GOOS=linux go build -o /rinha
 
+RUN mkdir /dataset
+
+WORKDIR /
+
+RUN /rinha -s
+
 CMD ["/rinha"]
