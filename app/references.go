@@ -45,6 +45,10 @@ func ReadReferences(file string) (error, []Reference) {
 
 // DownloadReferences downloads the references file
 func DownloadReferences() error {
+	err := os.Mkdir("dataset", 0755)
+	if err != nil {
+		return err
+	}
 	f, err := os.Create(ReferencesFilePath)
 	if err != nil {
 		return err
