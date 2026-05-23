@@ -1,0 +1,143 @@
+[
+    {
+        "request": {
+            "id": "tx-1641912674",
+            "transaction": {
+                "amount": 441.59,
+                "installments": 1,
+                "requested_at": "2027-07-09T16:31:06Z"
+            },
+            "customer": {
+                "avg_amount": 883.18,
+                "tx_count_24h": 1,
+                "known_merchants": [
+                    "MERC-004",
+                    "MERC-017"
+                ]
+            },
+            "merchant": {
+                "id": "MERC-004",
+                "mcc": "5411",
+                "avg_amount": 302.78
+            },
+            "terminal": {
+                "is_online": false,
+                "card_present": true,
+                "km_from_home": 33.8814492067
+            },
+            "last_transaction": {
+                "timestamp": "2027-06-04T14:14:22Z",
+                "km_from_current": 18.4353521556
+            }
+        },
+        "expected_approved": true,
+        "expected_fraud_score": 0
+    },
+    {
+        "request": {
+            "id": "tx-853640735",
+            "transaction": {
+                "amount": 5293.06,
+                "installments": 8,
+                "requested_at": "2028-09-19T03:34:29Z"
+            },
+            "customer": {
+                "avg_amount": 60.14,
+                "tx_count_24h": 11,
+                "known_merchants": [
+                    "MERC-009",
+                    "MERC-001"
+                ]
+            },
+            "merchant": {
+                "id": "MERC-087",
+                "mcc": "7995",
+                "avg_amount": 21.57
+            },
+            "terminal": {
+                "is_online": false,
+                "card_present": false,
+                "km_from_home": 265.7823290829
+            },
+            "last_transaction": {
+                "timestamp": "2024-01-04T03:43:32Z",
+                "km_from_current": 722.9372664641
+            }
+        },
+        "expected_approved": false,
+        "expected_fraud_score": 1
+    },
+    {
+        "request": {
+            "id": "tx-300594756",
+            "transaction": {
+                "amount": 579.78,
+                "installments": 6,
+                "requested_at": "2029-04-11T16:28:54Z"
+            },
+            "customer": {
+                "avg_amount": 391.52,
+                "tx_count_24h": 10,
+                "known_merchants": [
+                    "MERC-018",
+                    "MERC-014",
+                    "MERC-001",
+                    "MERC-001",
+                    "MERC-012"
+                ]
+            },
+            "merchant": {
+                "id": "MERC-001",
+                "mcc": "5411",
+                "avg_amount": 268.13
+            },
+            "terminal": {
+                "is_online": true,
+                "card_present": false,
+                "km_from_home": 307.7927523241
+            },
+            "last_transaction": {
+                "timestamp": "2022-04-28T13:39:05Z",
+                "km_from_current": 140.954201678
+            }
+        },
+        "expected_approved": true,
+        "expected_fraud_score": 0
+    },
+    {
+        "request": {
+            "id": "tx-2819113423",
+            "transaction": {
+                "amount": 34.48,
+                "installments": 1,
+                "requested_at": "2029-10-19T12:43:23Z"
+            },
+            "customer": {
+                "avg_amount": 68.96,
+                "tx_count_24h": 4,
+                "known_merchants": [
+                    "MERC-018",
+                    "MERC-014",
+                    "MERC-009",
+                    "MERC-011"
+                ]
+            },
+            "merchant": {
+                "id": "MERC-011",
+                "mcc": "5812",
+                "avg_amount": 155.51
+            },
+            "terminal": {
+                "is_online": false,
+                "card_present": false,
+                "km_from_home": 26.5934805448
+            },
+            "last_transaction": {
+                "timestamp": "2024-07-22T16:28:47Z",
+                "km_from_current": 9.972598257
+            }
+        },
+        "expected_approved": true,
+        "expected_fraud_score": 0
+    }
+]

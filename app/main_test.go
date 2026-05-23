@@ -3,11 +3,26 @@ package main
 import (
 	"bytes"
 	"encoding/json"
+	"io"
 	"net/http"
 	"net/http/httptest"
+	"os"
 	"testing"
+
 	"github.com/coder/hnsw"
 )
+
+type RequestTest struct {
+	Request            Payload `json:"request"`
+	ExpectedApproved   bool    `json:"expected_approved"`
+	ExpectedFraudScore float32 `json:"expected_fraud_score"`
+}
+
+const testInputPath = "test/resources/test-data.json"
+
+var references []Reference
+var savedGraph *hnsw.SavedGraph[int]
+var testInput []RequestTest
 
 func makeRequest(payload []byte) *http.Request {
 	req := httptest.NewRequest(http.MethodPost, "/fraud-score", bytes.NewBuffer(payload))
@@ -15,108 +30,56 @@ func makeRequest(payload []byte) *http.Request {
 	return req
 }
 
-func TestFraudScoreHandler(t *testing.T) {
-	payload := []byte(`{
-    "id": "tx-1329056812",
-    "transaction": {
-      "amount": 41.12,
-      "installments": 2,
-      "requested_at": "2026-03-11T18:45:53Z"
-    },
-    "customer": {
-      "avg_amount": 82.24,
-      "tx_count_24h": 3,
-      "known_merchants": [
-        "MERC-003",
-        "MERC-016"
-      ]
-    },
-    "merchant": {
-      "id": "MERC-016",
-      "mcc": "5411",
-      "avg_amount": 60.25
-    },
-    "terminal": {
-      "is_online": false,
-      "card_present": true,
-      "km_from_home": 29.2331036248
-    },
-    "last_transaction": null
-  }`)
-	req := makeRequest(payload)
-	w := httptest.NewRecorder()
-	err, references := ReadReferences("test/resources/example-references.json.gz")
+func TestMain(m *testing.M) {
+	var err error
+	err, references = ReadReferences(ReferencesFilePath)
 	if err != nil {
-		t.Error(err)
+		panic(err)
 	}
-	graph := AddReferences(references)
-	FraudScoreHandler(w, req, graph, references)
-	if w.Code != http.StatusOK {
-		t.Errorf("Expected status code %v, got %v", http.StatusOK, w.Code)
-	}
-	var response Response
-	err = json.Unmarshal(w.Body.Bytes(), &response)
+	savedGraph, err = hnsw.LoadSavedGraph[int](GraphPath)
 	if err != nil {
-		t.Error(err)
+		panic(err)
 	}
-	if !response.Approved {
-		t.Errorf("Expected transaction approved but got %v", response.Approved)
+	file, err := os.Open(testInputPath)
+	if err != nil {
+		panic(err)
 	}
+	defer file.Close()
+	data, err := io.ReadAll(file)
+	if err != nil {
+		panic(err)
+	}
+	err = json.Unmarshal([]byte(data), &testInput)
+	if err != nil {
+		panic(err)
+	}
+	m.Run()
 }
 
-func TestExpectedFraud(t *testing.T) {
-	payload := []byte(`
-{
-        "id": "tx-853640735",
-        "transaction": {
-          "amount": 5293.06,
-          "installments": 8,
-          "requested_at": "2028-09-19T03:34:29Z"
-        },
-        "customer": {
-          "avg_amount": 60.14,
-          "tx_count_24h": 11,
-          "known_merchants": [
-            "MERC-009",
-            "MERC-001"
-          ]
-        },
-        "merchant": {
-          "id": "MERC-087",
-          "mcc": "7995",
-          "avg_amount": 21.57
-        },
-        "terminal": {
-          "is_online": false,
-          "card_present": false,
-          "km_from_home": 265.7823290829
-        },
-        "last_transaction": {
-          "timestamp": "2024-01-04T03:43:32Z",
-          "km_from_current": 722.9372664641
-        }
-      }
-`)
-	req := makeRequest(payload)
-	w := httptest.NewRecorder()
-	err, references := ReadReferences(ReferencesFilePath)
-	if err != nil {
-		t.Error(err)
-	}
-	savedGraph, err := hnsw.LoadSavedGraph[int](GraphPath)
-	if err != nil {
-	 	t.Error(err)
-	}
-	FraudScoreHandler(w, req, savedGraph.Graph, references)
-	if w.Code != http.StatusOK {
-		t.Errorf("Expected status code %v, got %v", http.StatusOK, w.Code)
-	}
-	var response Response
-	err = json.Unmarshal(w.Body.Bytes(), &response)
-	if err != nil {
-		t.Error(err)
-	}
-	if response.Approved {
-		t.Errorf("Expected transaction not approved but got %v", response.Approved)
+func TestRequests(t *testing.T) {
+	for _, request := range testInput {
+		t.Run(request.Request.Id, func(t *testing.T) {
+			bytes, err := json.Marshal(request.Request)
+			if err != nil {
+				t.Error(err)
+			}
+			req := makeRequest(bytes)
+			w := httptest.NewRecorder()
+			FraudScoreHandler(w, req, savedGraph.Graph, references)
+			if w.Code != http.StatusOK {
+				t.Errorf("Expected status code %v, got %v", http.StatusOK, w.Code)
+			}
+			var response Response
+			err = json.Unmarshal(w.Body.Bytes(), &response)
+			if err != nil {
+				t.Error(err)
+			}
+			if response.Approved != request.ExpectedApproved {
+				t.Errorf("Expected approved = %v but got %v", request.ExpectedApproved, response.Approved)
+			}
+			if response.FraudScore != request.ExpectedFraudScore {
+				t.Errorf("Expected fraud score %v but got %v", request.ExpectedFraudScore, response.FraudScore)
+			}
+		})
 	}
 }
