@@ -7,6 +7,7 @@ import (
 	"io/ioutil"
 	"net/http"
 	"os"
+	"strings"
 )
 
 const (
@@ -46,7 +47,7 @@ func ReadReferences(file string) (error, []Reference) {
 // DownloadReferences downloads the references file
 func DownloadReferences() error {
 	err := os.Mkdir("dataset", 0755)
-	if err != nil {
+	if err != nil && !strings.Contains(err.Error(), "file exists") {
 		return err
 	}
 	f, err := os.Create(ReferencesFilePath)
