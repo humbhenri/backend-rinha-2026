@@ -20,7 +20,7 @@ type RequestTest struct {
 
 const testInputPath = "test/resources/test-data.json"
 
-var references []Reference
+var approvedReferences ApprovedReferences
 var savedGraph *hnsw.SavedGraph[int]
 var testInput []RequestTest
 
@@ -32,7 +32,7 @@ func makeRequest(payload []byte) *http.Request {
 
 func TestMain(m *testing.M) {
 	var err error
-	err, references = ReadReferences(ReferencesFilePath)
+	approvedReferences, err = LoadReferences()
 	if err != nil {
 		panic(err)
 	}
@@ -65,7 +65,7 @@ func TestRequests(t *testing.T) {
 			}
 			req := makeRequest(bytes)
 			w := httptest.NewRecorder()
-			FraudScoreHandler(w, req, savedGraph.Graph, references)
+			FraudScoreHandler(w, req, savedGraph.Graph, approvedReferences)
 			if w.Code != http.StatusOK {
 				t.Errorf("Expected status code %v, got %v", http.StatusOK, w.Code)
 			}

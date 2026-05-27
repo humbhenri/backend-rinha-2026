@@ -54,20 +54,21 @@ type Response struct {
 	FraudScore float32 `json:"fraud_score"`
 }
 
-func calcFraudScore(neighbors []hnsw.Node[int], references []Reference) float32 {
+func calcFraudScore(neighbors []hnsw.Node[int], approvedReferences ApprovedReferences) float32 {
+	log.Printf("Neighbors count: %d\n", len(neighbors))
 	frauds := 0
 	for _, neighbor := range neighbors {
 		index := neighbor.Key
-		reference := references[index-1]
-		log.Printf("reference index %d, label %v\n", index, reference.Label)
-		if reference.Label == "fraud" {
+		approved := approvedReferences[index]
+		log.Printf("reference index %d, label %v\n", index, approved)
+		if !approved {
 			frauds++
 		}
 	}
 	return float32(frauds) / 5.0
 }
 
-func FraudScoreHandler(w http.ResponseWriter, r *http.Request, graph *hnsw.Graph[int], references []Reference) {
+func FraudScoreHandler(w http.ResponseWriter, r *http.Request, graph *hnsw.Graph[int], approvedReferences ApprovedReferences) {
 	if r.Method != http.MethodPost {
 		http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
 		return
@@ -81,7 +82,7 @@ func FraudScoreHandler(w http.ResponseWriter, r *http.Request, graph *hnsw.Graph
 	vector := Transform(p)
 	log.Printf("Payload transformed into vector %v\n", vector)
 	neighbors := graph.Search(vector, 5)
-	fraudScore := calcFraudScore(neighbors, references)
+	fraudScore := calcFraudScore(neighbors, approvedReferences)
 	approved := fraudScore < 0.6
 	log.Printf("Transaction approved: %v. Fraud score: %v", approved, fraudScore)
 	w.Header().Set("Content-Type", "application/json")
@@ -103,11 +104,15 @@ func main() {
 			panic(err)
 		}
 		log.Println("References data downloaded")
-		err, references := ReadReferences(ReferencesFilePath)
+		references, err := ReadReferences(ReferencesFilePath)
 		if err != nil {
 			panic(err)
 		}
 		log.Println("References file read")
+		err = SaveReferences(references)
+		if err != nil {
+			panic(err)
+		}
 		g := AddReferences(references)
 		log.Println("Graph struct done")
 		err = SaveGraph(g)
@@ -117,8 +122,13 @@ func main() {
 		log.Println("Graph struct saved to file system, setup completed")
 		return
 	}
-	log.Println("Reading references file")
-	err, references := ReadReferences(ReferencesFilePath)
+ 	// log.Println("Reading references file")
+	// references, err := ReadReferences(ReferencesFilePath)
+	// if err != nil {
+	// 	panic(err)
+	// }
+	log.Println("Read approved references file")
+	approvedReferences, err := LoadReferences()
 	if err != nil {
 		panic(err)
 	}
@@ -129,7 +139,7 @@ func main() {
 	log.Println("References added to the graph struct")
 	http.HandleFunc("/ready", readyHandler)
 	http.HandleFunc("/fraud-score", func(w http.ResponseWriter, r *http.Request) {
-		FraudScoreHandler(w, r, savedGraph.Graph, references)
+		FraudScoreHandler(w, r, savedGraph.Graph, approvedReferences)
 	})
 	log.Println("App running on port 6969")
 	http.ListenAndServe(":6969", nil)
